@@ -43,6 +43,15 @@ INCLUDE_DIRECTORIES(
 	${CUDA_TOOLKIT_INCLUDE}
 )
 
+# Optional GDCM for direct DICOM loading
+OPTION(EXPOSURE_RENDER_USE_GDCM "Enable direct DICOM series loading via GDCM" OFF)
+
+IF (EXPOSURE_RENDER_USE_GDCM)
+	FIND_PACKAGE(GDCM REQUIRED)
+	INCLUDE_DIRECTORIES(${GDCM_INCLUDE_DIRS})
+	ADD_DEFINITIONS(-DEXPOSURE_RENDER_USE_GDCM)
+ENDIF()
+
 # Export symbols
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_EXPORTING")
 
@@ -52,6 +61,7 @@ SOURCE_GROUP("Core" FILES ${vtkErCoreSources})
 # General
 SET(General
 	device.h
+	dicomreader.h
 	utilities.h
 	geometry.h
 	transport.h
@@ -86,6 +96,7 @@ SET(General
 	color.h
 	exposurerender.h
 	exposurerender.cpp
+	dicomreader.cpp
 	tracer.h
 	volume.h
 	light.h
@@ -155,3 +166,7 @@ SOURCE_GROUP("Cuda" FILES ${Cuda})
 
 # Make the library
 CUDA_ADD_LIBRARY(ErCore ${General} ${Shapes} ${Bindable} ${Cuda} SHARED)
+
+IF (EXPOSURE_RENDER_USE_GDCM)
+	TARGET_LINK_LIBRARIES(ErCore ${GDCM_LIBRARIES})
+ENDIF()
