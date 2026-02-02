@@ -14,12 +14,17 @@ The latest windows executable can be found [here](https://github.com/ThomasKroes
 ## Building Exposure Render from source code
 If you are eager to build Exposure Render yourself you should clone the release repository. Latest build instructions (tested with Visual Studio 2017, Qt5.11.1, VTK 7.1.1 and Cuda 9.2) can be found [here](https://github.com/ThomasKroes/exposure-render.release110/blob/qt5_vtk7_cuda9_vs_2017/build.md).
 
+To build with newer CUDA toolkits, update your `EXPOSURE_RENDER_CUDA_ARCHITECTURES` cache entry in CMake (default targets include modern Ampere/Ada/Hopper architectures) and point CMake at the desired CUDA toolkit installation.
+
 ## System requirements
 
 * Microsoft Windows XP, Vista, or 7.
 * At least 1GB of system memory.
-* NVIDIA CUDA-compatible GPU with compute capability 1.0 and at least 512 megabytes of DRAM. GTX270 or higher is recommended
-* At the moment, larger data sets might give problems, we are working on that!
+* NVIDIA CUDA-compatible GPU with compute capability 5.2+ and sufficient VRAM for your volume sizes.
+* Larger data sets are supported by 64-bit buffer sizing, but rendering is still bounded by available GPU memory.
+
+## DICOM input
+Exposure Render's core library focuses on GPU volume rendering. For direct DICOM loading, use a DICOM reader (VTK's `vtkDICOMImageReader`, ITK, or GDCM) to load a series into a contiguous 3D buffer, then pass the data into `Buffer3D`/`Volume` for rendering.
 
 ## Developer(s)
 

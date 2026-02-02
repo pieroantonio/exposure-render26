@@ -50,7 +50,7 @@ static inline void ThreadSynchronize()
 	Cuda::HandleCudaError(cudaThreadSynchronize(), "cudaThreadSynchronize");
 }
 
-template<class T> static inline void Allocate(T*& pDevicePointer, int Num = 1)
+template<class T> static inline void Allocate(T*& pDevicePointer, size_t Num = 1)
 {
 	Cuda::ThreadSynchronize();
 	HandleCudaError(cudaMalloc((void**)&pDevicePointer, Num * sizeof(T)), "cudaMalloc");
@@ -64,49 +64,49 @@ template<class T> static inline void AllocatePiched(T*& pDevicePointer, const in
 	Cuda::ThreadSynchronize();
 }
 
-template<class T> static inline void MemSet(T*& pDevicePointer, const int Value, int Num = 1)
+template<class T> static inline void MemSet(T*& pDevicePointer, const int Value, size_t Num = 1)
 {
 	Cuda::ThreadSynchronize();
 	HandleCudaError(cudaMemset((void*)pDevicePointer, Value, (size_t)(Num * sizeof(T))), "cudaMemset");
 	Cuda::ThreadSynchronize();
 }
 
-template<class T> static inline void HostToConstantDevice(T* pHost, char* pDeviceSymbol, int Num = 1)
+template<class T> static inline void HostToConstantDevice(T* pHost, char* pDeviceSymbol, size_t Num = 1)
 {
 	Cuda::ThreadSynchronize();
 	HandleCudaError(cudaMemcpyToSymbol(pDeviceSymbol, pHost, Num * sizeof(T)), "cudaMemcpyToSymbol");
 	Cuda::ThreadSynchronize();
 }
 
-template<class T> static inline void MemCopyHostToDeviceSymbol(T* pHost, const char* pDeviceSymbol, const int& Num = 1, const int& Offset = 0)
+template<class T> static inline void MemCopyHostToDeviceSymbol(T* pHost, const char* pDeviceSymbol, const size_t& Num = 1, const size_t& Offset = 0)
 {
 	Cuda::ThreadSynchronize();
 	HandleCudaError(cudaMemcpyToSymbol(pDeviceSymbol, pHost, Num * sizeof(T), Offset, cudaMemcpyHostToDevice), "cudaMemcpyToSymbol");
 	Cuda::ThreadSynchronize();
 }
 
-template<class T> static inline void MemCopyDeviceToDeviceSymbol(T* pDevice, const char* pDeviceSymbol, const int& Num = 1, const int& Offset = 0)
+template<class T> static inline void MemCopyDeviceToDeviceSymbol(T* pDevice, const char* pDeviceSymbol, const size_t& Num = 1, const size_t& Offset = 0)
 {
 	Cuda::ThreadSynchronize();
 	HandleCudaError(cudaMemcpyToSymbol(pDeviceSymbol, pDevice, Num * sizeof(T), 0, cudaMemcpyDeviceToDevice), "cudaMemcpyToSymbol");
 	Cuda::ThreadSynchronize();
 }
 
-template<class T> static inline void MemCopyHostToDevice(T* pHost, T* pDevice, int Num = 1)
+template<class T> static inline void MemCopyHostToDevice(T* pHost, T* pDevice, size_t Num = 1)
 {
 	Cuda::ThreadSynchronize();
 	HandleCudaError(cudaMemcpy(pDevice, pHost, Num * sizeof(T), cudaMemcpyHostToDevice), "cudaMemcpy");
 	Cuda::ThreadSynchronize();
 }
 
-template<class T> static inline void MemCopyDeviceToHost(T* pDevice, T* pHost, int Num = 1)
+template<class T> static inline void MemCopyDeviceToHost(T* pDevice, T* pHost, size_t Num = 1)
 {
 	Cuda::ThreadSynchronize();
 	HandleCudaError(cudaMemcpy(pHost, pDevice, Num * sizeof(T), cudaMemcpyDeviceToHost), "cudaMemcpy");
 	Cuda::ThreadSynchronize();
 }
 
-template<class T> static inline void MemCopyDeviceToDevice(T* pDeviceSource, T* pDeviceDestination, int Num = 1)
+template<class T> static inline void MemCopyDeviceToDevice(T* pDeviceSource, T* pDeviceDestination, size_t Num = 1)
 {
 	Cuda::ThreadSynchronize();
 	HandleCudaError(cudaMemcpy(pDeviceDestination, pDeviceSource, Num * sizeof(T), cudaMemcpyDeviceToDevice), "cudaMemcpy");

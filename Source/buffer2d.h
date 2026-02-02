@@ -108,7 +108,7 @@ public:
 	{
 		DebugLog("%s: %s", __FUNCTION__, this->GetFullName());
 		
-		if (this->GetNoElements() <= 0)
+		if (this->GetNoElements() == 0)
 			return;
 		
 		if (this->MemoryType == Enums::Host)
@@ -135,12 +135,15 @@ public:
 
 		DebugLog("Resolution = [%d x %d]", this->Resolution[0], this->Resolution[1]);
 
-		this->NoElements = this->Resolution[0] * this->Resolution[1];
-
-		if (this->NoElements <= 0)
+		if (this->Resolution[0] <= 0 || this->Resolution[1] <= 0)
+		{
+			this->NoElements = 0;
 			return;
-		
-		DebugLog("No. Elements = %d", this->NoElements);
+		}
+
+		this->NoElements = static_cast<size_t>(this->Resolution[0]) * static_cast<size_t>(this->Resolution[1]);
+
+		DebugLog("No. Elements = %zu", this->NoElements);
 		
 		char MemoryString[MAX_CHAR_SIZE];
 		
@@ -169,7 +172,7 @@ public:
 
 		this->Resize(Resolution);
 
-		if (this->NoElements <= 0)
+		if (this->NoElements == 0)
 			return;
 
 		if (this->MemoryType == Enums::Host)
@@ -197,12 +200,12 @@ public:
 		this->Dirty = true;
 	}
 
-	HOST_DEVICE int GetNoElements(void) const
+	HOST_DEVICE size_t GetNoElements(void) const
 	{
 		return this->NoElements;
 	}
 
-	HOST_DEVICE virtual int GetNoBytes(void) const
+	HOST_DEVICE virtual size_t GetNoBytes(void) const
 	{
 		return this->GetNoElements() * sizeof(T);
 	}
@@ -253,9 +256,10 @@ public:
 		return (1.0f - dv) * ((1.0f - du) * Values[0] + du * Values[1]) + dv * ((1.0f - du) * Values[2] + du * Values[3]);
 	}
 
-	HOST_DEVICE T& operator[](const int& ID) const
+	HOST_DEVICE T& operator[](const size_t& ID) const
 	{
-		const int ClampedID = Clamp(ID, 0, this->NoElements - 1);
+		const size_t MaxIndex = this->NoElements > 0 ? this->NoElements - 1 : 0;
+		const size_t ClampedID = Clamp(ID, static_cast<size_t>(0), MaxIndex);
 		return this->Data[ClampedID];
 	}
 
@@ -272,11 +276,11 @@ public:
 
 	void Resize(const Vec2i& Resolution)
 	{
-		const int NoSeeds = Resolution[0] * Resolution[1];
+		const size_t NoSeeds = static_cast<size_t>(Resolution[0]) * static_cast<size_t>(Resolution[1]);
 
 		unsigned int* pSeeds = new unsigned int[NoSeeds];
 
-		for (int i = 0; i < NoSeeds; i++)
+		for (size_t i = 0; i < NoSeeds; i++)
 			pSeeds[i] = rand();
 
 		this->Set(Enums::Host, Resolution, pSeeds);

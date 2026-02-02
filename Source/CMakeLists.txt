@@ -20,17 +20,19 @@ PROJECT(ExposureRender)
 
 FIND_PACKAGE(CUDA)
 
-# Supported streaming architectures
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_10,code=sm_10;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_10,code=compute_10;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_11,code=sm_11;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_11,code=compute_11;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_12,code=sm_12;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_12,code=compute_12;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_13,code=sm_13;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_13,code=compute_13;${CUDA_NVCC_FLAGS}")
-SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_20,code=sm_20;${CUDA_NVCC_FLAGS}")
-SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_20,code=compute_20;${CUDA_NVCC_FLAGS}")
+# Supported streaming architectures (customize with EXPOSURE_RENDER_CUDA_ARCHITECTURES)
+SET(EXPOSURE_RENDER_CUDA_ARCHITECTURES "52;60;70;75;80;86;89;90" CACHE STRING "CUDA architectures to target (e.g. 75;86;90)")
+
+FOREACH(ARCH IN LISTS EXPOSURE_RENDER_CUDA_ARCHITECTURES)
+	SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_${ARCH},code=sm_${ARCH};${CUDA_NVCC_FLAGS}")
+ENDFOREACH()
+
+# Emit PTX for the newest architecture in the list for forward compatibility.
+LIST(LENGTH EXPOSURE_RENDER_CUDA_ARCHITECTURES EXPOSURE_RENDER_CUDA_ARCH_COUNT)
+MATH(EXPR EXPOSURE_RENDER_CUDA_ARCH_LAST_INDEX "${EXPOSURE_RENDER_CUDA_ARCH_COUNT} - 1")
+LIST(GET EXPOSURE_RENDER_CUDA_ARCHITECTURES ${EXPOSURE_RENDER_CUDA_ARCH_LAST_INDEX} EXPOSURE_RENDER_CUDA_PTX_ARCH)
+SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_${EXPOSURE_RENDER_CUDA_PTX_ARCH},code=compute_${EXPOSURE_RENDER_CUDA_PTX_ARCH};${CUDA_NVCC_FLAGS}")
+
 #SET(CUDA_NVCC_FLAGS "-OPT:Olimit=99999;${CUDA_NVCC_FLAGS}")
 
 # Add CUDA includes

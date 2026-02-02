@@ -100,7 +100,7 @@ public:
 	{
 		DebugLog("%s: %s", __FUNCTION__, this->GetFullName());
 		
-		if (this->GetNoElements() <= 0)
+		if (this->GetNoElements() == 0)
 			return;
 		
 		if (this->MemoryType == Enums::Host)
@@ -124,10 +124,14 @@ public:
 			this->Free();
 
 		this->Resolution	= Resolution;
-		this->NoElements	= this->Resolution;
 
-		if (this->NoElements <= 0)
+		if (this->Resolution <= 0)
+		{
+			this->NoElements = 0;
 			return;
+		}
+
+		this->NoElements = static_cast<size_t>(this->Resolution);
 
 		if (this->MemoryType == Enums::Host)
 			this->Data = (T*)malloc(this->GetNoBytes());
@@ -146,7 +150,7 @@ public:
 
 		this->Resize(Resolution);
 
-		if (this->NoElements <= 0)
+		if (this->NoElements == 0)
 			return;
 
 		if (this->MemoryType == Enums::Host)
@@ -174,17 +178,17 @@ public:
 		this->Dirty = true;
 	}
 
-	HOST_DEVICE int GetNoElements(void) const
+	HOST_DEVICE size_t GetNoElements(void) const
 	{
 		return this->NoElements;
 	}
 
-	HOST_DEVICE virtual int GetNoBytes(void) const
+	HOST_DEVICE virtual size_t GetNoBytes(void) const
 	{
 		return this->GetNoElements() * sizeof(T);
 	}
 
-	HOST_DEVICE T& operator[](const int& i) const
+	HOST_DEVICE T& operator[](const size_t& i) const
 	{
 		return this->Data[i];
 	}

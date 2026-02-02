@@ -108,7 +108,7 @@ public:
 	{
 		DebugLog("%s: %s", __FUNCTION__, this->GetFullName());
 		
-		if (this->GetNoElements() <= 0)
+		if (this->GetNoElements() == 0)
 			return;
 		
 		if (this->MemoryType == Enums::Host)
@@ -135,12 +135,17 @@ public:
 		
 		DebugLog("Resolution = [%d x %d x %d]", this->Resolution[0], this->Resolution[1], this->Resolution[2]);
 
-		this->NoElements = this->Resolution[0] * this->Resolution[1] * this->Resolution[2];
-		
-		if (this->NoElements <= 0)
+		if (this->Resolution[0] <= 0 || this->Resolution[1] <= 0 || this->Resolution[2] <= 0)
+		{
+			this->NoElements = 0;
 			return;
+		}
+
+		this->NoElements = static_cast<size_t>(this->Resolution[0])
+			* static_cast<size_t>(this->Resolution[1])
+			* static_cast<size_t>(this->Resolution[2]);
 		
-		DebugLog("No. Elements = %d", this->NoElements);
+		DebugLog("No. Elements = %zu", this->NoElements);
 
 		char MemoryString[MAX_CHAR_SIZE];
 		
@@ -169,7 +174,7 @@ public:
 
 		this->Resize(Resolution);
 
-		if (this->NoElements <= 0)
+		if (this->NoElements == 0)
 			return;
 
 		if (this->MemoryType == Enums::Host)
@@ -197,12 +202,12 @@ public:
 		this->Dirty = true;
 	}
 
-	HOST_DEVICE int GetNoElements(void) const
+	HOST_DEVICE size_t GetNoElements(void) const
 	{
 		return this->NoElements;
 	}
 
-	HOST_DEVICE virtual int GetNoBytes(void) const
+	HOST_DEVICE virtual size_t GetNoBytes(void) const
 	{
 		return this->GetNoElements() * sizeof(T);
 	}
@@ -241,9 +246,10 @@ public:
 		return Lerp(dz, d0, d1);
 	}
 
-	HOST_DEVICE T& operator[](const int& ID) const
+	HOST_DEVICE T& operator[](const size_t& ID) const
 	{
-		const int ClampedID = Clamp(ID, 0, this->NoElements - 1);
+		const size_t MaxIndex = this->NoElements > 0 ? this->NoElements - 1 : 0;
+		const size_t ClampedID = Clamp(ID, static_cast<size_t>(0), MaxIndex);
 		return this->Data[ClampedID];
 	}
 
