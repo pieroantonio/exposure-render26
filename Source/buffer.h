@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "geometry.h"
 #include "wrapper.cuh"
 
@@ -80,7 +82,7 @@ public:
 		sprintf_s(this->FullName, MAX_CHAR_SIZE, "['%s', %s]", this->Name, MemoryTypeName);
 	}
 
-	HOST virtual int GetNoBytes() const
+	HOST virtual size_t GetNoBytes() const
 	{
 		return 0;
 	}
@@ -116,7 +118,7 @@ public:
 	char				Name[MAX_CHAR_SIZE];
 	char				FullName[MAX_CHAR_SIZE];
 	T*					Data;
-	int					NoElements;
+	size_t				NoElements;
 	mutable bool		Dirty;
 };
 

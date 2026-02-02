@@ -20,17 +20,19 @@ PROJECT(ExposureRender)
 
 FIND_PACKAGE(CUDA)
 
-# Supported streaming architectures
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_10,code=sm_10;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_10,code=compute_10;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_11,code=sm_11;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_11,code=compute_11;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_12,code=sm_12;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_12,code=compute_12;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_13,code=sm_13;${CUDA_NVCC_FLAGS}")
-# SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_13,code=compute_13;${CUDA_NVCC_FLAGS}")
-SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_20,code=sm_20;${CUDA_NVCC_FLAGS}")
-SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_20,code=compute_20;${CUDA_NVCC_FLAGS}")
+# Supported streaming architectures (customize with EXPOSURE_RENDER_CUDA_ARCHITECTURES)
+SET(EXPOSURE_RENDER_CUDA_ARCHITECTURES "52;60;70;75;80;86;89;90" CACHE STRING "CUDA architectures to target (e.g. 75;86;90)")
+
+FOREACH(ARCH IN LISTS EXPOSURE_RENDER_CUDA_ARCHITECTURES)
+	SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_${ARCH},code=sm_${ARCH};${CUDA_NVCC_FLAGS}")
+ENDFOREACH()
+
+# Emit PTX for the newest architecture in the list for forward compatibility.
+LIST(LENGTH EXPOSURE_RENDER_CUDA_ARCHITECTURES EXPOSURE_RENDER_CUDA_ARCH_COUNT)
+MATH(EXPR EXPOSURE_RENDER_CUDA_ARCH_LAST_INDEX "${EXPOSURE_RENDER_CUDA_ARCH_COUNT} - 1")
+LIST(GET EXPOSURE_RENDER_CUDA_ARCHITECTURES ${EXPOSURE_RENDER_CUDA_ARCH_LAST_INDEX} EXPOSURE_RENDER_CUDA_PTX_ARCH)
+SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_${EXPOSURE_RENDER_CUDA_PTX_ARCH},code=compute_${EXPOSURE_RENDER_CUDA_PTX_ARCH};${CUDA_NVCC_FLAGS}")
+
 #SET(CUDA_NVCC_FLAGS "-OPT:Olimit=99999;${CUDA_NVCC_FLAGS}")
 
 # Add CUDA includes
@@ -41,6 +43,15 @@ INCLUDE_DIRECTORIES(
 	${CUDA_TOOLKIT_INCLUDE}
 )
 
+# Optional GDCM for direct DICOM loading
+OPTION(EXPOSURE_RENDER_USE_GDCM "Enable direct DICOM series loading via GDCM" OFF)
+
+IF (EXPOSURE_RENDER_USE_GDCM)
+	FIND_PACKAGE(GDCM REQUIRED)
+	INCLUDE_DIRECTORIES(${GDCM_INCLUDE_DIRS})
+	ADD_DEFINITIONS(-DEXPOSURE_RENDER_USE_GDCM)
+ENDIF()
+
 # Export symbols
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_EXPORTING")
 
@@ -50,6 +61,7 @@ SOURCE_GROUP("Core" FILES ${vtkErCoreSources})
 # General
 SET(General
 	device.h
+	dicomreader.h
 	utilities.h
 	geometry.h
 	transport.h
@@ -84,6 +96,7 @@ SET(General
 	color.h
 	exposurerender.h
 	exposurerender.cpp
+	dicomreader.cpp
 	tracer.h
 	volume.h
 	light.h
@@ -153,3 +166,7 @@ SOURCE_GROUP("Cuda" FILES ${Cuda})
 
 # Make the library
 CUDA_ADD_LIBRARY(ErCore ${General} ${Shapes} ${Bindable} ${Cuda} SHARED)
+
+IF (EXPOSURE_RENDER_USE_GDCM)
+	TARGET_LINK_LIBRARIES(ErCore ${GDCM_LIBRARIES})
+ENDIF()
