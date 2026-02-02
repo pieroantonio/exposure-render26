@@ -26,6 +26,20 @@ To build with newer CUDA toolkits, update your `EXPOSURE_RENDER_CUDA_ARCHITECTUR
 ## DICOM input
 Exposure Render's core library focuses on GPU volume rendering. For direct DICOM loading, use a DICOM reader (VTK's `vtkDICOMImageReader`, ITK, or GDCM) to load a series into a contiguous 3D buffer, then pass the data into `Buffer3D`/`Volume` for rendering.
 
+## Modernization roadmap (suggested)
+If you plan to modernize this codebase further, the following areas are the highest-impact upgrades:
+
+1. **Build system**
+   * Move to a newer CMake baseline and target-based configuration.
+   * Replace legacy `FindCUDA` usage with modern `FindCUDAToolkit`.
+2. **Dependencies**
+   * Update VTK/Qt to currently supported versions.
+   * Align CUDA toolkit and GPU drivers with your target hardware.
+3. **Data ingest**
+   * Add a first-class DICOM ingestion path (e.g., a small loader module based on VTK/ITK/GDCM) so datasets can be opened without a separate conversion step.
+4. **Large datasets**
+   * Introduce streaming/tile-based volume rendering or out-of-core caching to render volumes larger than GPU VRAM.
+
 ## Developer(s)
 
 Thomas Kroes
